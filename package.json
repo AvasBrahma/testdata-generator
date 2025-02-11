@@ -1,0 +1,11 @@
+{
+  "name": "testdata-generator",
+  "version": "1.0.0",
+  "description": "test data generator",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Avas",
+  "license": "ISC"
+}
