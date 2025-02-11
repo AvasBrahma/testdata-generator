@@ -1,4 +1,4 @@
-const UserGenerator = require('./generators/userGenerator');
+const UserGenerator = require('./src/generators/userGenerator');
 
 // Generate test data
 const userGenerator = new UserGenerator();
