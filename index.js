@@ -2,6 +2,7 @@ const UserGenerator = require('./src/generators/userGenerator');
 const EcommerceUserGenerator = require('./src/generators/users/ecommerceUserGenerator');
 const FinancialUserGenerator = require('./src/generators/users/financialUserGenerator');
 const BankingUserGenerator = require('./src/generators/users/bankingUserGenerator');
+const FileExporter = require('./utils/fileExporter');
 
 // Generate test data
 const userGenerator = new UserGenerator();
@@ -22,5 +23,10 @@ console.log("financial Users: ", financialUsers);
 const bankingGenerator = new BankingUserGenerator();
 const bankingUsers = bankingGenerator.generateBankingUsers(3);
 console.log("banking users: ", bankingUsers);
+
+// Export data
+FileExporter.exportToCSV(users, './output/users.csv');
+FileExporter.exportToJSON(users, './output/users.json');
+FileExporter.exportToYAML(users, './output/users.yaml');
 
 console.log('Test data generated and exported successfully!');
