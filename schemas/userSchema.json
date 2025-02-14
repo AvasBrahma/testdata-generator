@@ -1,0 +1,11 @@
+{
+    "type": "object",
+    "properties": {
+      "id": { "type": "string", "format": "uuid" },
+      "name": { "type": "string", "faker": "person.fullName" },
+      "email": { "type": "string", "faker": "internet.email" },
+      "age": { "type": "number", "minimum": 18, "maximum": 65 },
+      "isActive": { "type": "boolean" },
+      "createdAt": { "type": "string", "format": "date" }
+    }
+  }

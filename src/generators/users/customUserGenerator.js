@@ -28,11 +28,15 @@ class CustomUserCreator {
         return faker.datatype.boolean();
       case 'date':
         return faker.date.between({ from: config.from || '2020-01-01', to: config.to || '2023-12-31' }).toISOString();
+      case 'array':
+        return this.generateArray(config);
+      case 'object':
+        return this.generateObject(config);
       default:
         throw new Error(`Unsupported type: ${config.type}`);
     }
   }
-
+  
   // Generate data using Faker.js methods
   generateFakerData(fakerMethod) {
     const methodPath = fakerMethod.split('.');
@@ -42,6 +46,23 @@ class CustomUserCreator {
     }
     return result();
   }
+
+  // Generate an array based on the schema
+generateArray(config) {
+  const minItems = config.minItems || 1;
+  const maxItems = config.maxItems || 5;
+  const length = faker.number.int({ min: minItems, max: maxItems });
+  return Array.from({ length }, () => this.generateField(config.items));
+}
+
+// Generate an object based on the schema
+generateObject(config) {
+  const obj = {};
+  for (const [key, fieldConfig] of Object.entries(config.properties)) {
+    obj[key] = this.generateField(fieldConfig);
+  }
+  return obj;
+}
 
   // Generate multiple records
   generateMultiple(count = 10) {
