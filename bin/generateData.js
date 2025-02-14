@@ -2,7 +2,6 @@
 const { program } = require('commander');
 const fs = require('fs');
 const CustomUserCreator = require('../src/generators/users/customUserGenerator');
-const FileExporter = require('../utils/fileExporter');
 
 // Define CLI options
 program
@@ -12,6 +11,7 @@ program
   .option('-c, --count <number>', 'Number of records to generate', 10)
   .option('-o, --output <path>', 'Output file path (default: ./output/customData.json)')
   .option('-f, --format <type>', 'Output format (json, csv, yaml)', 'json')
+  .option('-b, --bulk <number>', 'Generate bulk data (number of records)', null)
   .parse(process.argv);
 
 // Read schema file
@@ -20,25 +20,37 @@ const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
 
 // Generate data
 const customCreator = new CustomUserCreator(schema);
-const data = customCreator.generateMultiple(parseInt(program.opts().count));
 
-// Determine output path
-const outputPath = program.opts().output || `./output/customData.${program.opts().format}`;
+if (program.opts().bulk) {
+  // Generate bulk data
+  const outputPath = program.opts().output || `./output/bulkData.${program.opts().format}`;
+  customCreator.generateBulk(parseInt(program.opts().bulk), outputPath, program.opts().format);
+} else {
+  // Generate a small dataset
+  const data = customCreator.generateMultiple(parseInt(program.opts().count));
+  const outputPath = program.opts().output || `./output/customData.${program.opts().format}`;
 
-// Export data
-switch (program.opts().format) {
-  case 'json':
-    FileExporter.exportToJSON(data, outputPath);
-    break;
-  case 'csv':
-    FileExporter.exportToCSV(data, outputPath);
-    break;
-  case 'yaml':
-    FileExporter.exportToYAML(data, outputPath);
-    break;
-  default:
-    console.error('Unsupported output format. Use json, csv, or yaml.');
-    process.exit(1);
+  // Export data
+  switch (program.opts().format) {
+    case 'json':
+      fs.writeFileSync(outputPath, JSON.stringify(data, null, 2));
+      break;
+    case 'csv':
+      const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+      const csvWriter = createCsvWriter({
+        path: outputPath,
+        header: Object.keys(data[0]).map((key) => ({ id: key, title: key })),
+      });
+      csvWriter.writeRecords(data);
+      break;
+    case 'yaml':
+      const yaml = require('js-yaml');
+      fs.writeFileSync(outputPath, yaml.dump(data));
+      break;
+    default:
+      console.error('Unsupported output format. Use json, csv, or yaml.');
+      process.exit(1);
+  }
+
+  console.log(`Data generated successfully and saved to ${outputPath}`);
 }
-
-console.log(`Data generated successfully and saved to ${outputPath}`);

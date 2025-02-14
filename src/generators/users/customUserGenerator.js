@@ -1,4 +1,7 @@
 const { faker } = require('@faker-js/faker');
+const fs = require('fs');
+const { pipeline } = require('stream');
+const { Transform } = require('stream');
 
 class CustomUserCreator {
   constructor(schema) {
@@ -67,6 +70,48 @@ generateObject(config) {
   // Generate multiple records
   generateMultiple(count = 10) {
     return Array.from({ length: count }, () => this.generateData());
+  }
+
+  // Generate data in bulk and stream to a file
+  generateBulk(count, filePath, format = 'json') {
+    const stream = fs.createWriteStream(filePath);
+
+    // Write the opening bracket for JSON array
+    if (format === 'json') {
+      stream.write('[');
+    }
+
+    // Create a transform stream to generate data
+    const dataStream = new Transform({
+      objectMode: true,
+      transform(chunk, encoding, callback) {
+        this.push(JSON.stringify(chunk) + '\n');
+        callback();
+      },
+    });
+
+    // Generate data in chunks and stream to file
+    let firstRecord = true;
+    for (let i = 0; i < count; i++) {
+      const record = this.generateData();
+
+      // Add a comma between JSON objects
+      if (format === 'json' && !firstRecord) {
+        stream.write(',');
+      }
+
+      // Write the record to the stream
+      stream.write(JSON.stringify(record));
+      firstRecord = false;
+    }
+
+    // Write the closing bracket for JSON array
+    if (format === 'json') {
+      stream.write(']');
+    }
+
+    stream.end();
+    console.log(`Generated ${count} records and saved to ${filePath}`);
   }
 }
 
